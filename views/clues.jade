@@ -1,0 +1,18 @@
+doctype html
+html
+  head
+  body
+    header Clues
+    section
+      p
+        form(method='post', action='clues')
+          textarea(name='clues', placeholder='Paste in some clues as comma-separated values')
+          br
+          input(type='checkbox', name='fieldNames')
+          |First line contains field names
+          br
+          input(type='checkbox', name='purge')
+          |Purge - clear all previously defnined clues
+          br
+          input(type='submit')
+
