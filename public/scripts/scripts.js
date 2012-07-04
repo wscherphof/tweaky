@@ -1,97 +1,111 @@
-YUI().use('node', 'datatable', 'transition', 'app', 'io-base', function (Y) {
-
-  var addCluesContainer = Y.one('#addClues');
-  var addClues = {
-    get: function (what) {
-      if (what === 'text') return addCluesContainer.one('#text').get('value');
-      if (what === 'fieldNames') return addCluesContainer.one('#fieldNames').get('checked');
-      if (what === 'purge') return addCluesContainer.one('#purge').get('checked');
-    },
-    submit: addCluesContainer.one('#submit'),
-  };
-
-  var displayCluesContainer = Y.one('#displayClues');
-  var displayClues = {
-    back: displayCluesContainer.one('#back'),
-  };
+YUI({filter: 'raw'}).use('node', 'datatable', 'transition', 'app', 'gallery-model-sync-rest', function (Y) {
   
-  Y.io.header('Content-Type', 'application/json');
-  Y.ClueList = Y.Base.create('clueList', Y.ModelList, [], {
-    sync: function (action, options, callback) {
-      if (action !== 'read') return;
-      Y.io('xxxxxxxxxxxxxxxxxxxxxxxxxxxx', {
-        method: 'GET',
-        timeout: 2000,
-        on: {
-          start: function () {
-            console.log('start');
-          },
-          success: function (id, res) {
-            console.log('success');
-            console.log(res);
-          },
-          failure: function (id, res) {
-            console.log('failure');
-            console.log(res);
-          },
-          complete: function (id, res) {
-            console.log('complete');
-            console.log(res);
-          },
-          end: function () {
-            console.log('end');
-          }
-        }
-      });
+  var addClues = Y.one('#addClues');
+  var displayClues = Y.one('#displayClues');
+  
+  var Clue = Y.Base.create('clue', Y.Model, [Y.ModelSync.REST], {
+      root: '/clues'
+  });
+
+  var Clues = Y.Base.create('clues', Y.ModelList, [Y.ModelSync.REST], {
+      model: Clue,
+      url  : '/clues'
+  });
+
+  var clueList = new Clues();
+  var clueTable = new Y.DataTable({
+    data: clueList
+  });
+  var clueFields = [];
+
+  Y.io('/clues/columns', {
+    method : 'GET',
+    on: {
+      success: function (txId, res) {
+        clueFields = Y.JSON.parse(res.responseText);
+        init(Y.JSON.parse(res.responseText));
+      },
+      failure: function (txId, res) {
+        console.log('failure');
+        console.log(res);
+      }
     }
   });
-  var clueList = new Y.ClueList();
-  clueList.load();
 
-  addClues.submit.on('click', function () {
-    var clues = parseClues(
-      addClues.get('text'),
-      addClues.get('fieldNames'),
-      addClues.get('purge')
-    );
-    var table = new Y.DataTable({
-      columns: data.columns,
-      data: data.data
+  function init (columns) {
+    clueTable.set('columns', columns);
+    clueTable.render(displayClues.one('#table'));
+    clueList.load(function (err, data) {
+      if (data.length === 0) return addClues.show();
+      displayClues.show();
     });
-    table.render('#cluesTable');
-    addCluesContainer.hide();
-    displayCluesContainer.show();
+  }
+
+
+  displayClues.one('#add').on('click', function () {
+    addClues.one('#text').set('value', ''),
+    addClues.one('#text').set('placeholder', clueFields.join(',')),
+    displayClues.hide();
+    addClues.show();
   });
 
-  displayClues.back.on('click', function () {
-    displayCluesContainer.hide();
-    addCluesContainer.show();
+  addClues.one('#submit').on('click', function () {
+    var clues = parseCSV(
+      addClues.one('#text').get('value'),
+      clueFields
+    );
+    clueTable.set('columns', clues.columns);
+    clueList.reset(clues.data);
+    displayClues.one('#add').hide();
+    displayClues.one('#edit').show();
+    displayClues.one('#save').show();
+    addClues.hide();
+    displayClues.show();
+  });
+
+  displayClues.one('#save').on('click', function () {
+    // TODO upload ModelList
+    displayClues.one('#add').show();
+    displayClues.one('#edit').hide();
+    displayClues.one('#save').hide();
+  });
+
+  displayClues.one('#edit').on('click', function () {
+    displayClues.hide();
+    addClues.show();
+  });
+
+  addClues.one('#cancel').on('click', function () {
+    addClues.hide();
+    displayClues.show();
   });
 
 });
 
 
-var clues = [];
-var clueFields = [];
-function parseClues (text, fieldNames, purge) {
+function parseCSV (text, names) {
+  var columns = [];
+  var data = [];
   var lines = text.split('\n');
-  if (purge) clues = clueFields = [];
-  if (fieldNames) {
+  names.forEach(function (name) {
+    columns.push(name);
+  });
+  if (columns.length === 0) {
     var firstLine = lines.shift();
-    if (clueFields.length === 0) clueFields = firstLine.split(',');
+    columns = firstLine.split(',');
   }
   lines.forEach(function (line) {
     if (line === '') return;
-    var clue = {};
+    var o = {};
     var values = line.split(',');
     values.forEach(function (value, i) {
-      var name = clueFields[i] || i;
-      clue[name] = value;
+      var name = columns[i];
+      o[name] = value;
     });
-    clues.push(clue);
+    data.push(o);
   });
   return {
-    columns: clueFields,
-    data: clues
+    columns: columns,
+    data: data
   };
 }

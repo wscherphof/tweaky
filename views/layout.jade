@@ -2,22 +2,24 @@ doctype html
 html
   head
   body
+
     header
       h1 Welcome
-    section#addClues(style="display: none")
-      h1 Add clues
-      textarea#text(placeholder='Paste in some clues as comma-separated values')
-      br
-      input#fieldNames(type='checkbox')
-      |First line contains field names
-      &nbsp;
-      input#purge(type='checkbox')
-      |Purge - clear all previously defnined clues
-      br
-      button#submit Add
-    section#displayClues(style="display: none")
-      div#cluesTable
-      button#back Back
 
-    script(src="http://yui.yahooapis.com/3.5.1/build/yui/yui-min.js")
+    section#addClues(style="display: none")
+      h1 Define clues
+      textarea#text(placeholder='Paste in some clues as comma-separated values, field names on first line')
+      br
+      button#cancel Back
+      button#submit Add
+
+    section#displayClues(style="display: none")
+      h1 Available clues
+      div#table
+      button#add Add more
+      button#edit(style="display: none") Go back to edit
+      button#save(style="display: none") Save
+
+    script(src="http://yui.yahooapis.com/3.5.1/build/yui/yui.js")
+    script(src="/yui3-gallery/build/gallery-model-sync-rest/gallery-model-sync-rest.js")
     script(src="/scripts/scripts.js")
