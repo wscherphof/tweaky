@@ -4,19 +4,19 @@ YUI({filter: 'raw'}).use('node', 'datatable', 'transition', 'app', 'gallery-mode
   var displayClues = Y.one('#displayClues');
   
   var Clue = Y.Base.create('clue', Y.Model, [Y.ModelSync.REST], {
-      root: '/clues'
+    root: '/clues'
   });
 
   var Clues = Y.Base.create('clues', Y.ModelList, [Y.ModelSync.REST], {
-      model: Clue,
-      url  : '/clues'
+    model: Clue,
+    url  : '/clues'
   });
 
+  var clueFields = [];
   var clueList = new Clues();
   var clueTable = new Y.DataTable({
     data: clueList
   });
-  var clueFields = [];
 
   Y.io('/clues/columns', {
     method : 'GET',
@@ -54,8 +54,12 @@ YUI({filter: 'raw'}).use('node', 'datatable', 'transition', 'app', 'gallery-mode
       addClues.one('#text').get('value'),
       clueFields
     );
-    clueTable.set('columns', clues.columns);
-    clueList.reset(clues.data);
+    var columns = [];
+    clueFields.forEach(function (name) {
+      columns.push(name);
+    });
+    clueTable.set('columns', columns);
+    clueList.reset(clues);
     displayClues.one('#add').hide();
     displayClues.one('#edit').show();
     displayClues.one('#save').show();
@@ -83,13 +87,9 @@ YUI({filter: 'raw'}).use('node', 'datatable', 'transition', 'app', 'gallery-mode
 });
 
 
-function parseCSV (text, names) {
-  var columns = [];
+function parseCSV (text, columns) {
   var data = [];
   var lines = text.split('\n');
-  names.forEach(function (name) {
-    columns.push(name);
-  });
   if (columns.length === 0) {
     var firstLine = lines.shift();
     columns = firstLine.split(',');
@@ -104,8 +104,5 @@ function parseCSV (text, names) {
     });
     data.push(o);
   });
-  return {
-    columns: columns,
-    data: data
-  };
+  return data;
 }
