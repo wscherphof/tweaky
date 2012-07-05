@@ -10,14 +10,16 @@ html
       h1 Define clues
       textarea#text(placeholder='Paste in some clues as comma-separated values, field names on first line')
       br
-      button#cancel Back
-      button#submit Add
+      button#cancel(style="display: none") Back
+      button#submit(style="display: none") Add
 
     section#displayClues(style="display: none")
       h1 Available clues
       div#table
       button#add Add more
+      button#delete(style="display: none") Delete all
       button#edit(style="display: none") Back to edit
+      button#cancel(style="display: none") Cancel adding
       button#save(style="display: none") OK, save these
 
     script(src="http://yui.yahooapis.com/3.5.1/build/yui/yui.js")

@@ -28,6 +28,14 @@ app.get('/clues', function (req, res, next) {
   res.json(clues.data);
 });
 
+app.delete('/clues', function (req, res, next) {
+  clues = {
+    columns: [],
+    data: []
+  };
+  res.json(clues.data);
+});
+
 app.get('/clues/columns', function (req, res, next) {
   res.json(clues.columns);
 });
